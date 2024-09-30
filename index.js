@@ -1,3 +1,7 @@
+document.addEventListener('DOMContentLoaded', function() {
+    loadRegistrations();
+});
+
 document.getElementById('registrationForm').addEventListener('submit', function(event) {
     event.preventDefault();
 
@@ -7,7 +11,12 @@ document.getElementById('registrationForm').addEventListener('submit', function(
     const dob = document.getElementById('dob').value;
     const acceptedTerms = document.getElementById('terms').checked;
 
-    // Age validation for Date of Birth
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        alert("Please enter a valid email address.");
+        return;
+    }
+
     const today = new Date();
     const birthDate = new Date(dob);
     const age = today.getFullYear() - birthDate.getFullYear();
@@ -18,30 +27,34 @@ document.getElementById('registrationForm').addEventListener('submit', function(
     }
 
     if (age < 18 || age > 55) {
-        alert("You must be between 18 and 55 years old.");
+        alert("You must be between 18 to 55 years old.");
         return;
     }
 
-    // Add data to the table
-    const tableBody = document.getElementById('registrationTableBody');
-    const newRow = tableBody.insertRow();
-    newRow.insertCell(0).textContent = name;
-    newRow.insertCell(1).textContent = email;
-    newRow.insertCell(2).textContent = password; // Note: You might want to handle passwords securely
-    newRow.insertCell(3).textContent = dob;
-    newRow.insertCell(4).textContent = acceptedTerms;
+    const registration = { name, email, password, dob, acceptedTerms };
+    let registrations = JSON.parse(localStorage.getItem('registrations')) || [];
+    registrations.push(registration);
+    localStorage.setItem('registrations', JSON.stringify(registrations));
 
-    // Create Delete button
-    const deleteCell = newRow.insertCell(5);
-    const deleteButton = document.createElement('button');
-    deleteButton.textContent = "Delete";
-    deleteButton.className = "delete-btn";
-    deleteButton.onclick = function() {
-        tableBody.deleteRow(newRow.rowIndex - 1); // Remove the row from the table
-        // Optionally remove from local storage here if you are storing the data
-    };
-    deleteCell.appendChild(deleteButton);
-
-    // Clear form fields
     document.getElementById('registrationForm').reset();
+
+    loadRegistrations();
 });
+
+function loadRegistrations() {
+    const tableBody = document.getElementById('registrationTableBody');
+    tableBody.innerHTML = ''; 
+
+    let registrations = JSON.parse(localStorage.getItem('registrations')) || [];
+
+    registrations.forEach((registration, index) => {
+        const newRow = tableBody.insertRow();
+        newRow.insertCell(0).textContent = registration.name;
+        newRow.insertCell(1).textContent = registration.email;
+        newRow.insertCell(2).textContent = registration.password;
+        newRow.insertCell(3).textContent = registration.dob;
+        newRow.insertCell(4).textContent = registration.acceptedTerms ? 'Yes' : 'No';
+
+        
+    });
+}
