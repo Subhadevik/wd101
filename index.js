@@ -1,14 +1,15 @@
 const userForm = document.getElementById("user-form");
 let userEntries = JSON.parse(localStorage.getItem("user-entries")) || [];
 
+// Save user data to localStorage and update the table
 const saveUserData = (event) => {
   event.preventDefault();
 
-  const name = document.getElementById("name").value;
+  const username = document.getElementById("name").value;
   const email = document.getElementById("email").value;
   const dob = document.getElementById("dob").value;
   const password = document.getElementById("password").value;
-  const tac = document.getElementById("tac").checked;
+  const checkBox = document.getElementById("tac").checked;
 
   const age = calculateAge(dob);
 
@@ -17,46 +18,51 @@ const saveUserData = (event) => {
     return;
   }
 
-  if (!emailInput.checkValidity() || !passwordInput.checkValidity()) {
-    return;
-  }
-
   const entry = {
-    name,
+    username,
     email,
     dob,
     password,
-    tac,
+    checkBox,
   };
 
+  // Add the new entry to the list of user entries
   userEntries.push(entry);
+
+  // Save the updated entries to localStorage
   localStorage.setItem("user-entries", JSON.stringify(userEntries));
 
+  // Reset the form after submission
   userForm.reset();
+
+  // Display the updated table with new entry
   displayEntries();
 };
 
+// Calculate age based on the date of birth
 const calculateAge = (dob) => {
   const birthDate = new Date(dob);
-  const diffMs = Date.now() - birthDate.getTime();
-  const ageDt = new Date(diffMs);
-  return Math.abs(ageDt.getUTCFullYear() - 1970);
+  const ageDiff = Date.now() - birthDate.getTime();
+  const ageDate = new Date(ageDiff);
+  return Math.abs(ageDate.getUTCFullYear() - 1970);
 };
 
-const retrieveUserEntries = () => {
+// Retrieve user data from localStorage
+const retrieveUserData = () => {
   const entries = localStorage.getItem("user-entries");
   return entries ? JSON.parse(entries) : [];
 };
 
+// Display all user entries in the table
 const displayEntries = () => {
-  const entries = retrieveUserEntries();
+  const entries = retrieveUserData();
   const tableEntries = entries
     .map((entry) => {
-      const nameCell = `<td>${entry.name}</td>`;
+      const nameCell = `<td>${entry.username}</td>`;
       const emailCell = `<td>${entry.email}</td>`;
       const passwordCell = `<td>${entry.password}</td>`;
       const dobCell = `<td>${entry.dob}</td>`;
-      const tacCell = `<td>${entry.tac ? "Yes" : "No"}</td>`;
+      const tacCell = `<td>${entry.checkBox ? "Yes" : "No"}</td>`;
       const row = `<tr>${nameCell} ${emailCell} ${passwordCell} ${dobCell} ${tacCell}</tr>`;
       return row;
     })
@@ -78,33 +84,8 @@ const displayEntries = () => {
   details.innerHTML = table;
 };
 
+// Listen for form submission and call saveUserData
 userForm.addEventListener("submit", saveUserData);
+
+// Display entries when the page loads
 displayEntries();
-
-const passwordInput = document.getElementById("password");
-passwordInput.addEventListener("input", () => {
-  validatePassword(passwordInput);
-});
-
-const emailInput = document.getElementById("email");
-emailInput.addEventListener("input", () => {
-  validateEmail(emailInput);
-});
-
-function validateEmail(emailInput) {
-  if (emailInput.validity.typeMismatch) {
-    emailInput.setCustomValidity("Email is not in the right format!");
-    emailInput.reportValidity();
-  } else {
-    emailInput.setCustomValidity("");
-  }
-}
-
-function validatePassword(passwordInput) {
-  if (passwordInput.value.length < 8) {
-    passwordInput.setCustomValidity("Minimum 8 characters must be present!");
-    passwordInput.reportValidity();
-  } else {
-    passwordInput.setCustomValidity("");
-  }
-}
