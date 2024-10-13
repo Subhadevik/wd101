@@ -1,87 +1,110 @@
-// Function to calculate age based on date of birth
-function calculateAge(dob) {
-    const birthDate = new Date(dob);
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-        age--;
-    }
-    return age;
-}
+const userForm = document.getElementById("user-form");
+let userEntries = JSON.parse(localStorage.getItem("user-entries")) || [];
 
-// Function to validate email format
-function validateEmail(email) {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(String(email).toLowerCase());
-}
+const saveUserData = (event) => {
+  event.preventDefault();
 
-// Function to check if age is valid (between 18 and 55)
-function isValidAge(dob) {
-    const age = calculateAge(dob);
-    return age >= 18 && age <= 55;
-}
+  const name = document.getElementById("name").value;
+  const email = document.getElementById("email").value;
+  const dob = document.getElementById("dob").value;
+  const password = document.getElementById("password").value;
+  const tac = document.getElementById("tac").checked;
 
-// Function to add a user to the table
-function addUserToTable(name, email, password, dob, acceptedTerms) {
-    const table = document.getElementById('user-table-body');
-    const newRow = table.insertRow();
-    newRow.innerHTML = `
-        <td>${name}</td>
-        <td>${email}</td>
-        <td>${password}</td>
-        <td>${dob}</td>
-        <td>${acceptedTerms ? "Yes" : "No"}</td>
-    `;
-}
+  const age = calculateAge(dob);
 
-// Function to save user data to localStorage
-function saveToLocalStorage(users) {
-    localStorage.setItem('users', JSON.stringify(users));
-}
+  if (age < 18 || age > 55) {
+    alert("You must be between 18 and 55 years old to register.");
+    return;
+  }
 
-// Function to load user data from localStorage
-function loadFromLocalStorage() {
-    const users = JSON.parse(localStorage.getItem('users')) || [];
-    return users;
-}
+  if (!emailInput.checkValidity() || !passwordInput.checkValidity()) {
+    return;
+  }
 
-// Load users from localStorage and add them to the table on page load
-window.onload = function() {
-    const users = loadFromLocalStorage();
-    users.forEach(user => addUserToTable(user.name, user.email, user.password, user.dob, user.acceptedTerms));
+  const entry = {
+    name,
+    email,
+    dob,
+    password,
+    tac,
+  };
+
+  userEntries.push(entry);
+  localStorage.setItem("user-entries", JSON.stringify(userEntries));
+
+  userForm.reset();
+  displayEntries();
 };
 
-// Handle form submission
-document.getElementById("registration-form").addEventListener("submit", function(event) {
-    event.preventDefault();
+const calculateAge = (dob) => {
+  const birthDate = new Date(dob);
+  const diffMs = Date.now() - birthDate.getTime();
+  const ageDt = new Date(diffMs);
+  return Math.abs(ageDt.getUTCFullYear() - 1970);
+};
 
-    // Grab form data
-    const name = document.getElementById("name").value;
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-    const dob = document.getElementById("dob").value;
-    const acceptedTerms = document.getElementById("terms").checked;
+const retrieveUserEntries = () => {
+  const entries = localStorage.getItem("user-entries");
+  return entries ? JSON.parse(entries) : [];
+};
 
-    // Validate email and age
-    if (!validateEmail(email)) {
-        alert("Please enter a valid email address.");
-        return;
-    }
+const displayEntries = () => {
+  const entries = retrieveUserEntries();
+  const tableEntries = entries
+    .map((entry) => {
+      const nameCell = `<td>${entry.name}</td>`;
+      const emailCell = `<td>${entry.email}</td>`;
+      const passwordCell = `<td>${entry.password}</td>`;
+      const dobCell = `<td>${entry.dob}</td>`;
+      const tacCell = `<td>${entry.tac ? "Yes" : "No"}</td>`;
+      const row = `<tr>${nameCell} ${emailCell} ${passwordCell} ${dobCell} ${tacCell}</tr>`;
+      return row;
+    })
+    .join("\n");
 
-    if (!isValidAge(dob)) {
-        alert("Age must be between 18 and 55 years old.");
-        return;
-    }
+  const table = `
+    <table>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Password</th>
+        <th>Dob</th>
+        <th>Accepted terms?</th>
+      </tr>
+      ${tableEntries}
+    </table>`;
 
-    // Add user to the table
-    addUserToTable(name, email, password, dob, acceptedTerms);
+  let details = document.getElementById("user-entries");
+  details.innerHTML = table;
+};
 
-    // Save user data
-    let users = loadFromLocalStorage();
-    users.push({ name, email, password, dob, acceptedTerms });
-    saveToLocalStorage(users);
+userForm.addEventListener("submit", saveUserData);
+displayEntries();
 
-    // Clear form fields after submission
-    document.getElementById("registration-form").reset();
+const passwordInput = document.getElementById("password");
+passwordInput.addEventListener("input", () => {
+  validatePassword(passwordInput);
 });
+
+const emailInput = document.getElementById("email");
+emailInput.addEventListener("input", () => {
+  validateEmail(emailInput);
+});
+
+function validateEmail(emailInput) {
+  if (emailInput.validity.typeMismatch) {
+    emailInput.setCustomValidity("Email is not in the right format!");
+    emailInput.reportValidity();
+  } else {
+    emailInput.setCustomValidity("");
+  }
+}
+
+function validatePassword(passwordInput) {
+  if (passwordInput.value.length < 8) {
+    passwordInput.setCustomValidity("Minimum 8 characters must be present!");
+    passwordInput.reportValidity();
+  } else {
+    passwordInput.setCustomValidity("");
+  }
+}
