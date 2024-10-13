@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Form</title>
+    <style>
+        /* Reset some default styles */
+        body, h1, table {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Container for the form and table */
+        .container {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 30px; /* Increased padding for more space */
+            width: 600px; /* Increased width for the form */
+            max-width: 100%; /* Ensure it stays responsive */
+            text-align: center; /* Center text inside the container */
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left; /* Align labels and inputs to the left */
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="date"] {
+            width: calc(100% - 22px); /* Adjusted to fit inside the container */
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        input[type="checkbox"] {
+            margin-right: 5px;
+        }
+
+        .terms {
+            margin: 15px 0;
+        }
+
+        /* Button styles */
+        .submit-btn {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            border: none;
+            color: white;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            background-color: #0056b3;
+        }
+
+        /* Table styles */
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+            text-align: left; /* Align table text to the left */
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+
+        /* Responsive styles */
+        @media (max-width: 500px) {
+            .container {
+                width: 90%; /* Make the container responsive */
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Registration Form</h1>
+        <form id="registrationForm">
+            <div class="form-group">
+                <label for="name">Name:</label>
+                <input type="text" id="name" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" required minlength="8" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}">
+            </div>
+            <div class="form-group">
+                <label for="dob">Date of Birth:</label>
+                <input type="date" id="dob" required>
+            </div>
+            <div class="terms">
+                <input type="checkbox" id="terms" required>
+                <label for="terms">I accept the terms and conditions</label>
+            </div>
+            <button type="submit" class="submit-btn">Submit</button>
+        </form>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Password</th>
+                    <th>Date of Birth</th>
+                    <th>Accepted terms?</th>
+                </tr>
+            </thead>
+            <tbody id="registrationTableBody"></tbody>
+        </table>
+    </div>
+
+    <script>
+        // Fetch user records from localStorage
+        const getUserData = () => {
+            try {
+                const data = localStorage.getItem("user-details");
+                return data ? JSON.parse(data) : [];
+            } catch (err) {
+                console.error("Error retrieving data from localStorage:", err);
+                return [];
+            }
+        };
+
+        // Render user entries in the HTML table
+        const renderEntries = () => {
+            const users = getUserData();
+            const userRows = users.map((user) => `
+                <tr>
+                    <td class="border px-4 py-2">${user.fullName}</td>
+                    <td class="border px-4 py-2">${user.userEmail}</td>
+                    <td class="border px-4 py-2">********</td> <!-- Mask password -->
+                    <td class="border px-4 py-2">${new Date(user.birthDate).toLocaleDateString()}</td> <!-- Format date -->
+                    <td class="border px-4 py-2">${user.termsAccepted ? 'Yes' : 'No'}</td>
+                </tr>
+            `).join("");
+
+            document.getElementById("registrationTableBody").innerHTML = userRows;
+        };
+
+        // Validate date of birth (must be between 18 and 55 years)
+        const checkAgeValidity = (dobInput) => {
+            const birthDate = new Date(dobInput);
+            const currentAge = (Date.now() - birthDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
+
+            if (currentAge < 18 || currentAge > 55) {
+                alert("The age must be between 18 and 55 years.");
+                return false;
+            }
+            return true;
+        };
+
+        // Check if email already exists in the user data
+        const doesEmailExist = (email) => {
+            const users = getUserData();
+            return users.some(user => user.userEmail === email);
+        };
+
+        // Check password strength (at least 6 characters with a number)
+        const validatePasswordStrength = (pwd) => {
+            const pwdPattern = /^(?=.*\d).{6,}$/;
+            if (!pwdPattern.test(pwd)) {
+                alert("Password should be at least 6 characters long and include a number.");
+                return false;
+            }
+            return true;
+        };
+
+        // Handle form submission, validate inputs, and save user data
+        const processFormSubmission = (e) => {
+            e.preventDefault();
+
+            const fullName = document.getElementById("name").value.trim();
+            const userEmail = document.getElementById("email").value.trim();
+            const pwd = document.getElementById("password").value;
+            const birthDate = document.getElementById("dob").value;
+            const termsAccepted = document.getElementById("terms").checked;
+
+            // Validate email
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(userEmail)) {
+                alert("Enter a valid email address.");
+                return;
+            }
+
+            // Check if email already registered
+            if (doesEmailExist(userEmail)) {
+                alert("This email is already registered. Please use a different one.");
+                return;
+            }
+
+            // Validate password strength
+            if (!validatePasswordStrength(pwd)) {
+                return;
+            }
+
+            // Validate date of birth
+            if (!checkAgeValidity(birthDate)) {
+                return;
+            }
+
+            // Create new user object
+            const newUser = {
+                fullName,
+                userEmail,
+                pwd,  // In a real application, hash the password
+                birthDate,
+                termsAccepted,
+            };
+
+            // Fetch existing user data, add the new user, and save to localStorage
+            const userData = getUserData();
+            userData.push(newUser);
+
+            try {
+                localStorage.setItem("user-details", JSON.stringify(userData));
+                renderEntries(); // Refresh the table with new data
+                alert("User registered successfully!"); // Success message
+            } catch (err) {
+                console.error("Error saving user data to localStorage:", err);
+            }
+
+            // Clear form fields after submission
+            e.target.reset();
+        };
+
+        // Bind form submit event to the handler function
+        document.getElementById("registrationForm").addEventListener("submit", processFormSubmission);
+
+        // Show user entries on page load
+        renderEntries();
+    </script>
+</body>
+
+</html>
