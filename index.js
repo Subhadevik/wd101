@@ -22,7 +22,7 @@ const renderEntries = () => {
         </tr>
     `).join("");
 
-    document.getElementById("user-entries").innerHTML = userRows;
+    document.getElementById("registrationTableBody").innerHTML = userRows;
 };
 
 // Validate date of birth (must be between 18 and 55 years)
@@ -61,7 +61,7 @@ const processFormSubmission = (e) => {
     const userEmail = document.getElementById("email").value.trim();
     const pwd = document.getElementById("password").value;
     const birthDate = document.getElementById("dob").value;
-    const termsAccepted = document.getElementById("acceptTerms").checked;
+    const termsAccepted = document.getElementById("terms").checked;
 
     // Validate email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -112,7 +112,7 @@ const processFormSubmission = (e) => {
 };
 
 // Bind form submit event to the handler function
-document.getElementById("user-form").addEventListener("submit", processFormSubmission);
+document.getElementById("registrationForm").addEventListener("submit", processFormSubmission);
 
 // Show user entries on page load
 renderEntries();
